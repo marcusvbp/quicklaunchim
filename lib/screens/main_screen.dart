@@ -103,8 +103,11 @@ class _MainScreenState extends State<MainScreen> {
                           margin: const EdgeInsets.only(right: 10),
                           width: 35,
                           child: Center(
-                            child: Image.asset(
-                              'assets/country_flags/png250px/${country!['iso']!.toLowerCase()}.png',
+                            child: Text(
+                              '${country!["flag"]}',
+                              style: const TextStyle(
+                                fontSize: 36,
+                              ),
                             ),
                           ),
                         ),
