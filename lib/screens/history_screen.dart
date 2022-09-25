@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/screens/main_screen.dart';
 import 'package:provider/provider.dart';
@@ -34,7 +35,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Provider.of<MessageHistory>(context, listen: false).remove;
               final item = history.items[index];
               final tile = ListTile(
-                title: Text('+${item.countryCode} ${item.phoneNumber}'),
+                title: Row(
+                  children: [
+                    Text('+${item.countryCode} ${item.phoneNumber}'),
+                    const Spacer(),
+                    Tooltip(
+                      message: DateFormat('dd/MM/yyyy - kk:mm:ss')
+                          .format(item.dateTime),
+                      child: Text(
+                        DateFormat('dd/MM - kk:mm').format(item.dateTime),
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
                 subtitle: item.message != null
                     ? Text(
                         '${item.message}',

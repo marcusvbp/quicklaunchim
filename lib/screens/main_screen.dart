@@ -322,6 +322,9 @@ class _MainScreenState extends State<MainScreen> {
     if (value == null || value.isEmpty) {
       return 'Not Empty';
     }
+    // if (phoneNumberIsInvalid) {
+    //   return 'This phone number does not look lika a mobile number';
+    // }
     return null;
   }
 }
