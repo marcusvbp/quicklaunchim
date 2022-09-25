@@ -78,7 +78,11 @@ class MyApp extends StatelessWidget {
       GoRoute(
         path: '/',
         builder: (BuildContext context, GoRouterState state) {
-          return const MainScreen();
+          final MainScreenArguments? args =
+              state.extra != null ? state.extra as MainScreenArguments : null;
+          return MainScreen(
+            arguments: args,
+          );
         },
         routes: [
           GoRoute(

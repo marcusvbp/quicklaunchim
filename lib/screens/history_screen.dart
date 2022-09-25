@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:go_router/go_router.dart';
 import 'package:openim/controllers/message_history.dart';
+import 'package:openim/screens/main_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../models/history.dart';
@@ -44,7 +46,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   height: 40,
                 ),
                 trailing: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push(
+                      '/',
+                      extra: MainScreenArguments(
+                        code: item.countryCode,
+                        phone: item.phoneNumber,
+                        message: item.message,
+                        messenger: item.messenger,
+                      ),
+                    );
+                  },
                   child: const Text('Resend'),
                 ),
               );

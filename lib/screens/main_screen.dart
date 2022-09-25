@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -5,13 +6,18 @@ import 'package:openim/controllers/code.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/controllers/messenger.dart';
 import 'package:openim/data/countries.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final MainScreenArguments? arguments;
+  const MainScreen({
+    super.key,
+    this.arguments,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -22,9 +28,10 @@ class _MainScreenState extends State<MainScreen> {
   String code = '';
   String phone = '';
   String message = '';
+  bool phoneNumberIsInvalid = true;
   Countries countries = Countries();
   Map<String, String>? country;
-  InstantMessenger messenger = InstantMessenger.whatsapp;
+  late InstantMessenger messenger;
 
   late TextEditingController _inputCodeController;
   late TextEditingController _inputPhoneController;
@@ -35,8 +42,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _inputPhoneController = TextEditingController();
-    _inputMessageController = TextEditingController();
 
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByCode(code));
@@ -47,11 +52,20 @@ class _MainScreenState extends State<MainScreen> {
   void didChangeDependencies() {
     final c = Provider.of<CodeValue>(context, listen: false).code;
 
-    _inputCodeController = TextEditingController(text: c);
+    _inputPhoneController = TextEditingController(
+      text: widget.arguments?.phone,
+    );
+    _inputMessageController = TextEditingController(
+      text: widget.arguments?.message,
+    );
+
+    _inputCodeController =
+        TextEditingController(text: widget.arguments?.code ?? c);
     messenger = Provider.of<MessengerValue>(context, listen: false).messenger;
-    country = countries.findCountryByCode(c);
+    country = countries.findCountryByCode(widget.arguments?.code ?? c);
     setState(() {
-      code = c;
+      code = widget.arguments?.code ?? c;
+      messenger = widget.arguments?.messenger ?? InstantMessenger.whatsapp;
     });
     super.didChangeDependencies();
   }
@@ -75,13 +89,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Provider.of<CodeValue>(context, listen: false).set(code);
-          Provider.of<MessengerValue>(context, listen: false).set(messenger);
-          Provider.of<MessageHistory>(context, listen: false).set(
-            History(code, phone, messenger, DateTime.now(), message),
-          );
-        },
+        onPressed: _saveAndSendMessage,
         label: const Text('Open'),
         icon: const Icon(Icons.open_in_browser),
       ),
@@ -94,15 +102,17 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                SizedBox(
+                  height: 85,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (country != null)
                         Container(
                           margin: const EdgeInsets.only(right: 10),
                           width: 35,
-                          child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
                             child: Text(
                               '${country!["flag"]}',
                               style: const TextStyle(
@@ -147,7 +157,7 @@ class _MainScreenState extends State<MainScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _inputPhoneController,
-                          onChanged: (v) => setState(() => phone = v),
+                          onChanged: _inputPhoneChange,
                           onTap: () =>
                               _inputPhoneController.selection = TextSelection(
                             baseOffset: 0,
@@ -158,7 +168,8 @@ class _MainScreenState extends State<MainScreen> {
                           keyboardType: TextInputType.phone,
                           validator: validatePhone,
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp('[0-9]'))
+                            FilteringTextInputFormatter.allow(
+                                RegExp('[0-9/+/-]'))
                           ],
                           decoration: InputDecoration(
                             hintText: '0123456',
@@ -226,6 +237,60 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  String? _phoneNumberParser(String phone) {
+    final parsed = PhoneNumber.parse(phone);
+    setState(() {
+      phoneNumberIsInvalid = !parsed.isValid(type: PhoneNumberType.mobile);
+    });
+    _inputCodeController.value = TextEditingValue(text: parsed.countryCode);
+    _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
+    _inputPhoneController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _inputPhoneController.text.length));
+    setState(() {
+      code = parsed.countryCode;
+      country = countries.findCountryByCode(parsed.countryCode);
+    });
+    if (parsed.isValid(type: PhoneNumberType.mobile)) {
+      return parsed.nsn;
+    }
+    return null;
+  }
+
+  void _inputPhoneChange(v) {
+    String? nsn;
+    try {
+      if (v.contains('+') && v.length > 4) {
+        nsn = _phoneNumberParser(v);
+      }
+    } on PhoneNumberException catch (err) {
+      setState(() {
+        phoneNumberIsInvalid = true;
+      });
+      if ((err.code == Code.notFound || err.code == Code.invalidIsoCode) &&
+          phoneNumberIsInvalid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+            content: const Text(
+              'The country code is not found, or is invalid.',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
+    }
+    setState(() => phone = nsn ?? v);
+  }
+
   Future<void> _openUrl() async {
     // final Uri url = Uri.parse(
     //     'whatsapp://send?text=Hello World!&phone=+5599988094216'); // whatsapp
@@ -233,6 +298,16 @@ class _MainScreenState extends State<MainScreen> {
         Uri.parse('tg://msg?text=Mi_mensaje&to=+5599988094216'); // telegram
     if (!await launchUrl(url)) {
       throw 'Não foi possível abrir $url';
+    }
+  }
+
+  void _saveAndSendMessage() {
+    if (formKey.currentState!.validate()) {
+      Provider.of<CodeValue>(context, listen: false).set(code);
+      Provider.of<MessengerValue>(context, listen: false).set(messenger);
+      Provider.of<MessageHistory>(context, listen: false).set(
+        History(code, phone, messenger, DateTime.now(), message),
+      );
     }
   }
 
@@ -249,4 +324,18 @@ class _MainScreenState extends State<MainScreen> {
     }
     return null;
   }
+}
+
+class MainScreenArguments {
+  final String? code;
+  final String? phone;
+  final String? message;
+  final InstantMessenger? messenger;
+
+  MainScreenArguments({
+    this.code,
+    this.phone,
+    this.message,
+    this.messenger,
+  });
 }
