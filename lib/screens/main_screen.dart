@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:localization/localization.dart';
 import 'package:openim/controllers/code.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/controllers/messenger.dart';
@@ -80,17 +82,18 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quick Open IM'),
+        title: Text('appName'.i18n()),
         actions: [
           IconButton(
             onPressed: () => context.go('/config'),
             icon: const Icon(Icons.settings),
+            tooltip: "settings".i18n(),
           )
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _saveAndSendMessage,
-        label: const Text('Open'),
+        label: Text('open'.i18n()),
         icon: const Icon(Icons.open_in_browser),
       ),
       body: Padding(
@@ -98,9 +101,8 @@ class _MainScreenState extends State<MainScreen> {
         child: Center(
           child: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
+              shrinkWrap: true,
               children: [
                 SizedBox(
                   height: 85,
@@ -146,8 +148,8 @@ class _MainScreenState extends State<MainScreen> {
                             hintText: '0',
                             hintStyle: TextStyle(color: Colors.grey.shade600),
                             border: const OutlineInputBorder(),
-                            label: const Text(
-                              'Code',
+                            label: Text(
+                              'code'.i18n(),
                             ),
                             labelStyle: const TextStyle(fontSize: 14),
                             prefix: const Text('+'),
@@ -175,9 +177,9 @@ class _MainScreenState extends State<MainScreen> {
                             hintText: '0123456',
                             hintStyle: TextStyle(color: Colors.grey.shade600),
                             border: const OutlineInputBorder(),
-                            label: const Text(
-                              'Phone number',
-                              style: TextStyle(fontSize: 14),
+                            label: Text(
+                              'phoneNumber'.i18n(),
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                         ),
@@ -185,7 +187,7 @@ class _MainScreenState extends State<MainScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 10),
                         child: PopupMenuButton<InstantMessenger>(
-                          tooltip: 'Select Instant Messenger',
+                          tooltip: 'selectIM'.i18n(),
                           itemBuilder: (context) => [
                             const PopupMenuItem(
                               value: InstantMessenger.whatsapp,
@@ -217,18 +219,21 @@ class _MainScreenState extends State<MainScreen> {
                   minLines: 1,
                   maxLength: 70,
                   onChanged: (v) => setState(() => message = v),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
                     label: Text(
-                      'Message (optional)',
-                      style: TextStyle(fontSize: 14),
+                      "${'message'.i18n()} (${'optional'.i18n()})",
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => context.go('/history'),
-                  child: const Text('History'),
-                )
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () => context.go('/history'),
+                    child: Text('history'.i18n()),
+                  ),
+                ),
               ],
             ),
           ),
@@ -274,15 +279,15 @@ class _MainScreenState extends State<MainScreen> {
             duration: const Duration(seconds: 5),
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
-              label: 'Dismiss',
+              label: 'dismiss'.i18n(),
               textColor: Colors.white,
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
               },
             ),
-            content: const Text(
-              'The country code is not found, or is invalid.',
-              style: TextStyle(color: Colors.white),
+            content: Text(
+              'invalidCode'.i18n(),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         );
@@ -313,14 +318,14 @@ class _MainScreenState extends State<MainScreen> {
 
   String? validateCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Not Empty';
+      return 'notEmpty'.i18n();
     }
     return null;
   }
 
   String? validatePhone(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Not Empty';
+      return 'notEmpty'.i18n();
     }
     // if (phoneNumberIsInvalid) {
     //   return 'This phone number does not look lika a mobile number';

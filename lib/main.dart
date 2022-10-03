@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:localization/localization.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/controllers/messenger.dart';
 import 'package:openim/data_storage/history_storage.dart';
@@ -50,19 +52,49 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => codeController),
         ChangeNotifierProvider(create: (context) => messageHistoryController),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    LocalJsonLocalization.delegate.directories = ['lib/i18n'];
     return MaterialApp.router(
       title: 'Quick Open IM',
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        LocalJsonLocalization.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('es', ''),
+        Locale('pt', ''),
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        if (supportedLocales.contains(locale)) {
+          return locale;
+        }
+
+        // define pt_BR as default when de language code is 'pt'
+        // if (locale?.languageCode == 'pt') {
+        //   return const Locale('pt', '');
+        // }
+
+        // default language
+        return const Locale('en', '');
+      },
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       darkTheme: ThemeClass.darkTheme,

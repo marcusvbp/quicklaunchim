@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:localization/localization.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/screens/main_screen.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Message History'),
+        title: Text('historyScreenTitle'.i18n()),
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 12.0),
@@ -72,7 +73,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     );
                   },
-                  child: const Text('Resend'),
+                  child: Text('resend'.i18n()),
                 ),
               );
 

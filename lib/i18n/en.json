@@ -1,0 +1,19 @@
+{
+  "appName": "Quick Open IM",
+  "code": "Code",
+  "phoneNumber": "Phone number",
+  "message": "Message",
+  "optional": "optional",
+  "selectIM": "Select Instant Messenger",
+  "dismiss": "Dismiss",
+  "history": "History",
+  "open": "Open",
+  "notEmpty": "Not Empty",
+  "resend": "Resend",
+  "back": "Back",
+  "delete": "Apagar",
+  "invalidCode": "The country code is not found or invalid",
+  "settings": "settings",
+  "historyScreenTitle": "Message History",
+  "configurationsScreenTitle": "Settings"
+}
