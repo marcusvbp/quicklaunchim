@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:localization/localization.dart';
+import 'package:openim/controllers/appsettings/language.dart';
+import 'package:openim/controllers/appsettings/theme.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/controllers/messenger.dart';
+import 'package:openim/data_storage/appsettings/language_storage.dart';
+import 'package:openim/data_storage/appsettings/theme_storage.dart';
 import 'package:openim/data_storage/history_storage.dart';
 import 'package:openim/data_storage/messenger_storage.dart';
 import 'package:openim/screens/config_screen.dart';
@@ -40,10 +44,14 @@ Future<void> main() async {
   final messageHistoryController = MessageHistory(
     storage: HistoryStorage(),
   );
+  final languageController = LanguageController(storage: LanguageStorage());
+  final themeController = ThemeController(storage: ThemeStorage());
 
+  await languageController.rehydrate();
   await messengerController.rehydrate();
   await codeController.rehydrate();
   await messageHistoryController.rehydrate();
+  await themeController.rehydrate();
 
   runApp(
     MultiProvider(
@@ -51,6 +59,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => messengerController),
         ChangeNotifierProvider(create: (context) => codeController),
         ChangeNotifierProvider(create: (context) => messageHistoryController),
+        ChangeNotifierProvider(create: (context) => languageController),
+        ChangeNotifierProvider(create: (context) => themeController),
       ],
       child: const MyApp(),
     ),
@@ -69,39 +79,28 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     LocalJsonLocalization.delegate.directories = ['lib/i18n'];
-    return MaterialApp.router(
-      title: 'Quick Open IM',
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        LocalJsonLocalization.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', ''),
-        Locale('es', ''),
-        Locale('pt', ''),
-      ],
-      localeResolutionCallback: (locale, supportedLocales) {
-        if (supportedLocales.contains(locale)) {
-          return locale;
-        }
-
-        // define pt_BR as default when de language code is 'pt'
-        // if (locale?.languageCode == 'pt') {
-        //   return const Locale('pt', '');
-        // }
-
-        // default language
-        return const Locale('en', '');
+    return Consumer2<LanguageController, ThemeController>(
+      builder: (context, langCtrl, themeCtrl, __) {
+        return MaterialApp.router(
+          title: 'Quick Open IM',
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            LocalJsonLocalization.delegate,
+          ],
+          supportedLocales: langCtrl.supportedLocales,
+          localeResolutionCallback: (locale, supportedLocales) =>
+              langCtrl.current,
+          debugShowCheckedModeBanner: false,
+          themeMode: themeCtrl.themeMode,
+          darkTheme: ThemeController.darkTheme,
+          theme: ThemeController.lightTheme,
+          routeInformationProvider: _router.routeInformationProvider,
+          routeInformationParser: _router.routeInformationParser,
+          routerDelegate: _router.routerDelegate,
+        );
       },
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      darkTheme: ThemeClass.darkTheme,
-      theme: ThemeClass.lightTheme,
-      routeInformationProvider: _router.routeInformationProvider,
-      routeInformationParser: _router.routeInformationParser,
-      routerDelegate: _router.routerDelegate,
     );
   }
 

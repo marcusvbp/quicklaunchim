@@ -1,47 +1,43 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:localization/localization.dart';
 import 'package:openim/controllers/global_controller.dart';
 import 'package:openim/data_storage/app_storage.dart';
 
-enum AppLanguage {
-  system,
-  en,
-  pt,
-  es,
-}
-
-class Language extends GlobalController<AppLanguage> with ChangeNotifier {
+class LanguageController extends GlobalController<Locale> with ChangeNotifier {
   final AppStorage<String> storage;
-  AppLanguage _current = AppLanguage.system;
 
-  Language({
+  late Locale _current;
+
+  final List<Locale> _locales = [
+    const Locale('en', ''),
+    const Locale('es', ''),
+    const Locale('pt', ''),
+  ];
+
+  LanguageController({
     required this.storage,
   });
 
-  final List<String> _localeStrings = ['en', 'es', 'pt'];
-  final Map<AppLanguage, String> _languageMap = {
-    AppLanguage.system: Platform.localeName,
-    AppLanguage.en: 'en',
-    AppLanguage.es: 'es',
-    AppLanguage.pt: 'pt',
-  };
-
-  String _getFirstLanguageCode(String langCode) {
-    return langCode.split('_')[0];
+  Locale _getSystemLocale(String systemLangCode) {
+    final langCode = systemLangCode.split('_')[0];
+    if (!_locales.map((e) => e.languageCode).contains(langCode)) {
+      return const Locale('en', '');
+    }
+    return Locale(langCode, '');
   }
 
   @override
   Future<void> rehydrate() async {
     final l = await storage.retrieve();
     if (l == null) {
-      _current = AppLanguage.system;
+      _current = _getSystemLocale(Platform.localeName);
     } else {
-      for (var lang in _languageMap.entries) {
-        if (lang.value == l) {
-          _current = lang.key;
+      for (var lang in _locales) {
+        if (lang.languageCode == l) {
+          _current = lang;
         }
       }
     }
@@ -49,18 +45,14 @@ class Language extends GlobalController<AppLanguage> with ChangeNotifier {
   }
 
   @override
-  void set(AppLanguage value) {
+  Future<void> set(Locale value) async {
     _current = value;
-    storage.save(value.name);
+    storage.save(value.languageCode);
+    await LocalJsonLocalization.delegate.load(value);
     notifyListeners();
   }
 
-  Locale get current {
-    final code = _getFirstLanguageCode(_languageMap[_current]!);
-    if (_localeStrings.contains(code)) {
-      return Locale(code, '');
-    }
+  Locale get current => _current;
 
-    return const Locale('en', '');
-  }
+  List<Locale> get supportedLocales => _locales;
 }
