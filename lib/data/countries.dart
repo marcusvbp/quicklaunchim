@@ -528,10 +528,21 @@ class Countries {
     {"name": "Zimbabwe", "flag": "🇿🇼", "code": "ZW", "dial_code": "+263"}
   ];
 
-  Map<String, String>? findCountryByCode(String code) {
+  Map<String, String>? findCountryByDialCode(String code) {
     try {
       final result = countries.firstWhere(
         (element) => element['dial_code'] == '+$code',
+      );
+      return result;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Map<String, String>? findCountryByCode(String code) {
+    try {
+      final result = countries.firstWhere(
+        (element) => element['code'] == code,
       );
       return result;
     } catch (e) {

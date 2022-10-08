@@ -15,5 +15,13 @@
   "invalidCode": "The country code is not found or invalid",
   "settings": "settings",
   "historyScreenTitle": "Message History",
-  "configurationsScreenTitle": "Settings"
+  "configurationsScreenTitle": "Settings",
+  "Theme": "Theme",
+  "Language": "Language",
+  "Themesystem": "From System",
+  "Themelight": "Light",
+  "Themedark": "Dark",
+  "Langpt": "Portuguese",
+  "Langes": "Spanish",
+  "Langen": "English"
 }

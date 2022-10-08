@@ -15,48 +15,78 @@ class _ConfigScreenState extends State<ConfigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('configurationsScreenTitle'.i18n()),
-        ),
-        body: Consumer2<LanguageController, ThemeController>(
-          builder: (context, langCtrl, themeCtrl, _) {
-            return ListView(
-              children: [
-                ListTile(
-                  title: const Text('Theme'),
-                  trailing: DropdownButton<ThemeMode>(
-                    value: themeCtrl.themeMode,
-                    items: ThemeMode.values
-                        .map((ThemeMode tm) => DropdownMenuItem(
-                              value: tm,
-                              child: Text(tm.name),
-                            ))
-                        .toList(),
-                    onChanged: (v) => themeCtrl.set(v!),
+      appBar: AppBar(
+        title: Text('configurationsScreenTitle'.i18n()),
+      ),
+      body: Consumer2<LanguageController, ThemeController>(
+        builder: (context, langCtrl, themeCtrl, _) {
+          return ListView(
+            children: [
+              // ListTile(
+              //   title: Text('Theme'.i18n()),
+              //   trailing: DropdownButton<ThemeMode>(
+              //     value: themeCtrl.themeMode,
+              //     items: ThemeMode.values
+              //         .map((ThemeMode tm) => DropdownMenuItem(
+              //               value: tm,
+              //               child: Text('Theme${tm.name}'.i18n()),
+              //             ))
+              //         .toList(),
+              //     onChanged: (v) => themeCtrl.set(v!),
+              //   ),
+              // ),
+              DropdownButtonFormField<ThemeMode>(
+                value: themeCtrl.themeMode,
+                decoration: InputDecoration(
+                  label: Text(
+                    'Theme'.i18n(),
+                    style: const TextStyle(fontSize: 18, height: 0.6),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 20,
                   ),
                 ),
-                const Divider(),
-                ListTile(
-                  title: const Text('Language'),
-                  trailing: DropdownButton<Locale>(
-                    value: langCtrl.current,
-                    items: langCtrl.supportedLocales
-                        .map(
-                          (Locale l) => DropdownMenuItem(
-                            value: l,
-                            child: Text(l.languageCode),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) async {
-                      await langCtrl.set(v!);
-                      setState(() {});
-                    },
+                items: ThemeMode.values
+                    .map((ThemeMode tm) => DropdownMenuItem(
+                          value: tm,
+                          child: Text('Theme${tm.name}'.i18n()),
+                        ))
+                    .toList(),
+                onChanged: (v) => themeCtrl.set(v!),
+              ),
+              const Divider(height: 1),
+              DropdownButtonFormField<Locale>(
+                decoration: InputDecoration(
+                  label: Text(
+                    'Language'.i18n(),
+                    style: const TextStyle(fontSize: 18, height: 0.6),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 20,
                   ),
                 ),
-              ],
-            );
-          },
-        ));
+                value: langCtrl.current,
+                items: langCtrl.supportedLocales
+                    .map(
+                      (Locale l) => DropdownMenuItem(
+                        value: l,
+                        child: Text('Lang${l.languageCode}'.i18n()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) async {
+                  await langCtrl.set(v!);
+                  setState(() {});
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }

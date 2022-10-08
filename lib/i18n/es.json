@@ -15,5 +15,13 @@
   "invalidCode": "El código de país no se encontró o no es válido.",
   "settings": "ajustes",
   "historyScreenTitle": "Historial de mensajes",
-  "configurationsScreenTitle": "Ajustes"
+  "configurationsScreenTitle": "Ajustes",
+  "Theme": "Tema",
+  "Language": "Idioma",
+  "Themesystem": "Del sistema",
+  "Themelight": "Claro",
+  "Themedark": "Oscuro",
+  "Langpt": "Portugués",
+  "Langes": "Español",
+  "Langen": "Inglés"
 }

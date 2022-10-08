@@ -46,7 +46,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
 
     codeFocusNode.addListener(() {
-      setState(() => country = countries.findCountryByCode(code));
+      setState(() => country = countries.findCountryByDialCode(code));
     });
   }
 
@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
     _inputCodeController =
         TextEditingController(text: widget.arguments?.code ?? c);
     messenger = Provider.of<MessengerValue>(context, listen: false).messenger;
-    country = countries.findCountryByCode(widget.arguments?.code ?? c);
+    country = countries.findCountryByDialCode(widget.arguments?.code ?? c);
     setState(() {
       code = widget.arguments?.code ?? c;
       messenger = widget.arguments?.messenger ?? InstantMessenger.whatsapp;
@@ -253,7 +253,7 @@ class _MainScreenState extends State<MainScreen> {
         TextPosition(offset: _inputPhoneController.text.length));
     setState(() {
       code = parsed.countryCode;
-      country = countries.findCountryByCode(parsed.countryCode);
+      country = countries.findCountryByDialCode(parsed.countryCode);
     });
     if (parsed.isValid(type: PhoneNumberType.mobile)) {
       return parsed.nsn;
