@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
 import 'package:openim/controllers/appsettings/language.dart';
 import 'package:openim/controllers/appsettings/theme.dart';
+import 'package:openim/widgets/donate_banner.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -22,19 +24,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
         builder: (context, langCtrl, themeCtrl, _) {
           return ListView(
             children: [
-              // ListTile(
-              //   title: Text('Theme'.i18n()),
-              //   trailing: DropdownButton<ThemeMode>(
-              //     value: themeCtrl.themeMode,
-              //     items: ThemeMode.values
-              //         .map((ThemeMode tm) => DropdownMenuItem(
-              //               value: tm,
-              //               child: Text('Theme${tm.name}'.i18n()),
-              //             ))
-              //         .toList(),
-              //     onChanged: (v) => themeCtrl.set(v!),
-              //   ),
-              // ),
               DropdownButtonFormField<ThemeMode>(
                 value: themeCtrl.themeMode,
                 decoration: InputDecoration(
@@ -83,10 +72,31 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   setState(() {});
                 },
               ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text('githubLink'.i18n()),
+                trailing: const Icon(Icons.open_in_new),
+                onTap: () async {
+                  if (!await launchUrl(Uri.parse('https://github.com/'))) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        duration: const Duration(seconds: 5),
+                        behavior: SnackBarBehavior.floating,
+                        content: Text(
+                          'openUrlError'.i18n(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
             ],
           );
         },
       ),
+      bottomNavigationBar: const DonateBanner(),
     );
   }
 }

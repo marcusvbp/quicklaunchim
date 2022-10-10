@@ -8,6 +8,7 @@ import 'package:openim/screens/main_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../models/history.dart';
+import '../widgets/donate_banner.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -101,6 +102,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: const DonateBanner(),
     );
   }
 }

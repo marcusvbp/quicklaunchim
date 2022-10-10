@@ -23,5 +23,9 @@
   "Themedark": "Oscuro",
   "Langpt": "Portugués",
   "Langes": "Español",
-  "Langen": "Inglés"
+  "Langen": "Inglés",
+  "githubLink": "Enlace al proyecto GitHub",
+  "donateWith": "Donar con",
+  "openUrlError": "Error al intentar abrir el enlace.",
+  "donateMessage": "Si te gusta %s0, ¡considera donar! ❤️"
 }

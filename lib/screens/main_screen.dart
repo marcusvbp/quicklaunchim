@@ -8,6 +8,7 @@ import 'package:openim/controllers/code.dart';
 import 'package:openim/controllers/message_history.dart';
 import 'package:openim/controllers/messenger.dart';
 import 'package:openim/data/countries.dart';
+import 'package:openim/widgets/donate_banner.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -239,6 +240,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: const DonateBanner(),
     );
   }
 
