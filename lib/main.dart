@@ -78,7 +78,7 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    LocalJsonLocalization.delegate.directories = ['lib/i18n'];
+    LocalJsonLocalization.delegate.directories = ['assets/i18n'];
     return Consumer2<LanguageController, ThemeController>(
       builder: (context, langCtrl, themeCtrl, __) {
         return MaterialApp.router(
@@ -90,8 +90,9 @@ class _MyAppState extends State<MyApp> {
             LocalJsonLocalization.delegate,
           ],
           supportedLocales: langCtrl.supportedLocales,
-          localeResolutionCallback: (locale, supportedLocales) =>
-              langCtrl.current,
+          localeResolutionCallback: (locale, supportedLocales) {
+            return langCtrl.current;
+          },
           debugShowCheckedModeBanner: false,
           themeMode: themeCtrl.themeMode,
           darkTheme: ThemeController.darkTheme,

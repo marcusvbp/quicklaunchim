@@ -23,7 +23,8 @@ class MessengerValue extends GlobalController<InstantMessenger>
   @override
   Future<void> rehydrate() async {
     final m = await storage.retrieve();
-    _messenger = InstantMessenger.values.firstWhere((e) => e.name == m);
+    _messenger = InstantMessenger.values.firstWhere((e) => e.name == m,
+        orElse: () => InstantMessenger.whatsapp);
     notifyListeners();
   }
 }

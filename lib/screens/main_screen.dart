@@ -110,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (country != null)
+                      if (country != null && country!.keys.isNotEmpty)
                         Container(
                           margin: const EdgeInsets.only(right: 10),
                           width: 35,
