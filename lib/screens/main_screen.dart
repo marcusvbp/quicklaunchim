@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +43,28 @@ class _MainScreenState extends State<MainScreen> {
   late TextEditingController _inputMessageController;
 
   FocusNode codeFocusNode = FocusNode();
+
+  Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('tg://msg?text=$text&to=+$code$phone');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('whatsapp://send?text=$text&phone=+$code$phone');
+      default:
+        return null;
+    }
+  }
+
+  Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('https://t.me/+$code$phone');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('https://wa.me/+$code$phone&text=$text');
+      default:
+        return null;
+    }
+  }
 
   @override
   void initState() {
@@ -299,22 +323,49 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _openUrl() async {
-    // final Uri url = Uri.parse(
-    //     'whatsapp://send?text=Hello World!&phone=+5599988094216'); // whatsapp
-    final Uri url =
-        Uri.parse('tg://msg?text=Mi_mensaje&to=+5599988094216'); // telegram
-    if (!await launchUrl(url)) {
-      throw 'Não foi possível abrir $url';
+    final Uri? urlScheme = _getUrlScheme(messenger, message, phone);
+    final Uri? urlLink = _getUrlLink(messenger, message, phone);
+    try {
+      if (urlScheme != null) {
+        log(urlScheme.toString());
+        await launchUrl(urlScheme);
+      }
+    } catch (_) {
+      try {
+        if (urlLink != null && !await launchUrl(urlLink)) {
+          throw OpenUrlException('cantOpenLink');
+        }
+      } on OpenUrlException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'dismiss'.i18n(),
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+            content: Text(
+              e.message.i18n([messenger.name]),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
     }
   }
 
-  void _saveAndSendMessage() {
+  void _saveAndSendMessage() async {
     if (formKey.currentState!.validate()) {
       Provider.of<CodeValue>(context, listen: false).set(code);
       Provider.of<MessengerValue>(context, listen: false).set(messenger);
       Provider.of<MessageHistory>(context, listen: false).set(
         History(code, phone, messenger, DateTime.now(), message),
       );
+      await _openUrl();
     }
   }
 
@@ -334,6 +385,12 @@ class _MainScreenState extends State<MainScreen> {
     // }
     return null;
   }
+}
+
+class OpenUrlException {
+  final String message;
+
+  OpenUrlException(this.message);
 }
 
 class MainScreenArguments {

@@ -27,5 +27,6 @@
   "githubLink": "Project GitHub link",
   "donateWith": "Donate with",
   "openUrlError": "Error trying to open the link.",
-  "donateMessage": "If you like %s0, please consider donating! ❤️"
+  "donateMessage": "If you like %s0, please consider donating! ❤️",
+  "cantOpenLink": "Unable to open %s0 link"
 }
