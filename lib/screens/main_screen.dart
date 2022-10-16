@@ -58,9 +58,9 @@ class _MainScreenState extends State<MainScreen> {
   Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
     switch (im) {
       case InstantMessenger.telegram:
-        return Uri.parse('https://t.me/+$code$phone');
+        return Uri.parse('https://t.me/+$code$phone?msg=$text');
       case InstantMessenger.whatsapp:
-        return Uri.parse('https://wa.me/+$code$phone&text=$text');
+        return Uri.parse('https://wa.me/+$code$phone?text=$text');
       default:
         return null;
     }
@@ -326,16 +326,22 @@ class _MainScreenState extends State<MainScreen> {
     final Uri? urlScheme = _getUrlScheme(messenger, message, phone);
     final Uri? urlLink = _getUrlLink(messenger, message, phone);
     try {
+      log(urlScheme.toString());
       if (urlScheme != null) {
-        log(urlScheme.toString());
         await launchUrl(urlScheme);
       }
     } catch (_) {
       try {
-        if (urlLink != null && !await launchUrl(urlLink)) {
+        log(urlLink.toString());
+        if (urlLink != null &&
+            !await launchUrl(
+              urlLink,
+              mode: LaunchMode.externalApplication,
+            )) {
           throw OpenUrlException('cantOpenLink');
         }
       } on OpenUrlException catch (e) {
+        final msg = e.message.i18n([messenger.name]);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
@@ -349,7 +355,7 @@ class _MainScreenState extends State<MainScreen> {
               },
             ),
             content: Text(
-              e.message.i18n([messenger.name]),
+              msg,
               style: const TextStyle(color: Colors.white),
             ),
           ),
