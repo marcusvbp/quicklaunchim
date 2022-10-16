@@ -532,6 +532,7 @@ class Countries {
     try {
       final result = countries.firstWhere(
         (element) => element['dial_code'] == '+$code',
+        orElse: () => {},
       );
       return result;
     } catch (e) {

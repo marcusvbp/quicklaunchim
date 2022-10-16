@@ -1,10 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
 import 'package:openim/controllers/global_controller.dart';
 import 'package:openim/data_storage/app_storage.dart';
+import 'package:universal_io/io.dart';
 
 class LanguageController extends GlobalController<Locale> with ChangeNotifier {
   final AppStorage<String> storage;
@@ -12,9 +12,9 @@ class LanguageController extends GlobalController<Locale> with ChangeNotifier {
   late Locale _current;
 
   final List<Locale> _locales = [
-    const Locale('en', ''),
-    const Locale('es', ''),
-    const Locale('pt', ''),
+    const Locale('en', 'US'),
+    const Locale('es', 'ES'),
+    const Locale('pt', 'BR'),
   ];
 
   LanguageController({
@@ -22,11 +22,12 @@ class LanguageController extends GlobalController<Locale> with ChangeNotifier {
   });
 
   Locale _getSystemLocale(String systemLangCode) {
-    final langCode = systemLangCode.split('_')[0];
-    if (!_locales.map((e) => e.languageCode).contains(langCode)) {
-      return const Locale('en', '');
+    final List<String> parts = systemLangCode.replaceAll('-', '_').split('_');
+    final langCode = Locale(parts[0], parts[1]);
+    if (!_locales.map((e) => e.languageCode).contains(langCode.languageCode)) {
+      return const Locale('en', 'US');
     }
-    return Locale(langCode, '');
+    return langCode;
   }
 
   @override
