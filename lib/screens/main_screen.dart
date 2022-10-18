@@ -105,6 +105,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    int? flag;
+    if (country != null && country!.keys.isNotEmpty) {
+      flag = int.tryParse(country!['flag']!);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('appName'.i18n()),
@@ -141,7 +145,9 @@ class _MainScreenState extends State<MainScreen> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 6.0),
                             child: Text(
-                              String.fromCharCode(country!['flag'] as int),
+                              flag != null
+                                  ? String.fromCharCode(flag)
+                                  : country!['flag']!,
                               style: const TextStyle(
                                 fontSize: 32,
                               ),
