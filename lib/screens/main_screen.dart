@@ -141,9 +141,9 @@ class _MainScreenState extends State<MainScreen> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 6.0),
                             child: Text(
-                              '${country!["flag"]}',
+                              String.fromCharCode(country!['flag'] as int),
                               style: const TextStyle(
-                                fontSize: 36,
+                                fontSize: 32,
                               ),
                             ),
                           ),
