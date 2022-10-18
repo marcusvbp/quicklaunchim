@@ -151,7 +151,7 @@ class _MainScreenState extends State<MainScreen> {
                                   ? String.fromCharCode(flag)
                                   : country!['flag']!,
                               style: const TextStyle(
-                                fontSize: 36,
+                                fontSize: 32,
                               ),
                             ),
                           ),
