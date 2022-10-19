@@ -92,6 +92,8 @@ class _MainScreenState extends State<MainScreen> {
     country = countries.findCountryByDialCode(widget.arguments?.code ?? c);
     setState(() {
       code = widget.arguments?.code ?? c;
+      phone = widget.arguments?.phone ?? '';
+      message = widget.arguments?.message ?? '';
       messenger = widget.arguments?.messenger ?? InstantMessenger.whatsapp;
     });
     super.didChangeDependencies();
