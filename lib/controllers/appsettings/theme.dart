@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:openim/controllers/global_controller.dart';
-import 'package:openim/data_storage/app_storage.dart';
+import 'package:quicklaunchim/controllers/global_controller.dart';
+import 'package:quicklaunchim/data_storage/app_storage.dart';
 
 class ThemeController extends GlobalController<ThemeMode> with ChangeNotifier {
   final AppStorage<String> storage;

@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:localization/localization.dart';
-import 'package:openim/controllers/code.dart';
-import 'package:openim/controllers/message_history.dart';
-import 'package:openim/controllers/messenger.dart';
-import 'package:openim/data/countries.dart';
-import 'package:openim/widgets/donate_banner.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:provider/provider.dart';
+import 'package:quicklaunchim/controllers/code.dart';
+import 'package:quicklaunchim/controllers/message_history.dart';
+import 'package:quicklaunchim/controllers/messenger.dart';
+import 'package:quicklaunchim/data/countries.dart';
+import 'package:quicklaunchim/widgets/donate_banner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
