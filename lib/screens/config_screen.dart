@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
-import 'package:openim/controllers/appsettings/language.dart';
-import 'package:openim/controllers/appsettings/theme.dart';
-import 'package:openim/widgets/donate_banner.dart';
 import 'package:provider/provider.dart';
+import 'package:quicklaunchim/controllers/appsettings/language.dart';
+import 'package:quicklaunchim/controllers/appsettings/theme.dart';
+import 'package:quicklaunchim/widgets/donate_banner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ConfigScreen extends StatefulWidget {

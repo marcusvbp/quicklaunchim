@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
-import 'package:openim/controllers/global_controller.dart';
-import 'package:openim/data_storage/app_storage.dart';
+import 'package:quicklaunchim/controllers/global_controller.dart';
+import 'package:quicklaunchim/data_storage/app_storage.dart';
 import 'package:universal_io/io.dart';
 
 class LanguageController extends GlobalController<Locale> with ChangeNotifier {

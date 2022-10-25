@@ -3,9 +3,9 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:localization/localization.dart';
-import 'package:openim/controllers/message_history.dart';
-import 'package:openim/screens/main_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:quicklaunchim/controllers/message_history.dart';
+import 'package:quicklaunchim/screens/main_screen.dart';
 
 import '../models/history.dart';
 import '../widgets/donate_banner.dart';

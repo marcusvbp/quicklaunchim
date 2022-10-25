@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:openim/controllers/global_controller.dart';
+import 'package:quicklaunchim/controllers/global_controller.dart';
 
 import '../data_storage/app_storage.dart';
 

@@ -1,4 +1,4 @@
-import 'package:openim/data_storage/app_storage.dart';
+import 'package:quicklaunchim/data_storage/app_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CodeStorage extends AppStorage<String> {
