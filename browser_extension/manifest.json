@@ -1,6 +1,6 @@
 {
-    "name": "Quick Open IM",
-    "description": "Quick Open IM",
+    "name": "Quick Launch IM",
+    "description": "Quickly open a phone number in Whatsapp or Telegram.",
     "version": "1.0.0",
     "content_security_policy": {
         "extension_pages": "script-src 'self' ; object-src 'self'"
