@@ -102,12 +102,14 @@ flutter:
 flutter_intl:
   enabled: true
 
+# fvm flutter pub run icons_launcher:create
 icons_launcher:
   image_path: 'assets/images/logo.png'
   platforms:
     android:
       enable: true
     web:
+      image_path: 'assets/images/logo_web.png'
       enable: true
     macos:
       enable: true
