@@ -77,8 +77,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 title: Text('githubLink'.i18n()),
                 trailing: const Icon(Icons.open_in_new),
                 onTap: () async {
-                  if (!await launchUrl(
-                      Uri.parse('https://github.com/quicklaunchim'))) {
+                  if (!await launchUrl(Uri.parse(
+                      'https://github.com/marcusvbp/quicklaunchim'))) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: const Duration(seconds: 5),
