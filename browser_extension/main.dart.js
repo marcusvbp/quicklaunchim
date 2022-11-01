@@ -73275,7 +73275,7 @@ A.adN.prototype={
 $0(){var s=0,r=A.Z(t.H),q=this,p,o
 var $async$$0=A.a_(function(a,b){if(a===1)return A.W(b,r)
 while(true)switch(s){case 0:s=2
-return A.aa(A.uq(A.d0("https://github.com/",0,null),B.nm),$async$$0)
+return A.aa(A.uq(A.d0("https://github.com/marcusvbp/quicklaunchim",0,null),B.nm),$async$$0)
 case 2:if(!b){p=q.a.J(t.Pu)
 p.toString
 o=$.aW
