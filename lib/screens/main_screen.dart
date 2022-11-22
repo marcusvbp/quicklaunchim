@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:quicklaunchim/controllers/message_history.dart';
 import 'package:quicklaunchim/controllers/messenger.dart';
 import 'package:quicklaunchim/data/countries.dart';
 import 'package:quicklaunchim/widgets/donate_banner.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
@@ -44,6 +46,8 @@ class _MainScreenState extends State<MainScreen> {
 
   FocusNode codeFocusNode = FocusNode();
 
+  late StreamSubscription _intentDataStreamSubscription;
+
   Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
     switch (im) {
       case InstantMessenger.telegram:
@@ -72,6 +76,19 @@ class _MainScreenState extends State<MainScreen> {
 
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByDialCode(code));
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStream().listen((String value) {
+      _inputPhoneChange(value);
+    }, onError: (err) {
+      log("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((value) {
+      if (value != null) _inputPhoneChange(value);
     });
   }
 
@@ -102,6 +119,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     codeFocusNode.dispose();
+    _intentDataStreamSubscription.cancel();
     super.dispose();
   }
 
