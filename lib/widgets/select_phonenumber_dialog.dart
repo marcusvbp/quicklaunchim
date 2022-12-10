@@ -31,7 +31,8 @@ class SelectPhoneNumberDialog extends StatelessWidget {
               itemBuilder: (context, index) => ListTile(
                 title: Text(phoneNumbers[index]!.replaceAll("\n", "")),
                 onTap: () {
-                  Navigator.pop(context, phoneNumbers[index]);
+                  Navigator.pop(
+                      context, phoneNumbers[index]!.replaceAll("\n", ""));
                 },
               ),
               separatorBuilder: (context, index) => const Divider(

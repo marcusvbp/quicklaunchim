@@ -60,15 +60,25 @@ class _MainScreenState extends State<MainScreen> {
 
     // For sharing or opening urls/text coming from outside the app while the app is in the memory
     _intentDataStreamSubscription =
-        ReceiveSharingIntent.getTextStream().listen((String value) {
-      _inputPhoneChange(value);
+        ReceiveSharingIntent.getTextStream().listen((String value) async {
+      _inputPhoneChange(
+        await _phoneNumberParser(
+          await _findAndSelectPhoneNumber(value),
+        ),
+      );
     }, onError: (err) {
       log("getLinkStream error: $err");
     });
 
     // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.getInitialText().then((value) {
-      if (value != null) _inputPhoneChange(value);
+    ReceiveSharingIntent.getInitialText().then((value) async {
+      if (value != null) {
+        _inputPhoneChange(
+          await _phoneNumberParser(
+            await _findAndSelectPhoneNumber(value),
+          ),
+        );
+      }
     });
   }
 
@@ -274,7 +284,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<String?> _phoneNumberParser(String source) async {
+  Future<String?> _findAndSelectPhoneNumber(String source) async {
     final matches = PhoneNumberUtils.findPhoneNumbersInString(source);
     String? phoneString;
     if (matches.length == 1) {
@@ -285,31 +295,38 @@ class _MainScreenState extends State<MainScreen> {
         builder: (context) => SelectPhoneNumberDialog(phoneNumbers: matches),
       );
     }
-    if (phoneString != null) {
-      final parsed = PhoneNumber.parse(phoneString);
-      setState(() {
-        phoneNumberIsInvalid = !parsed.isValid(type: PhoneNumberType.mobile);
-      });
-      _inputCodeController.value = TextEditingValue(text: parsed.countryCode);
-      _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
-      _inputPhoneController.selection = TextSelection.fromPosition(
-          TextPosition(offset: _inputPhoneController.text.length));
-      setState(() {
-        code = parsed.countryCode;
-        country = countries.findCountryByDialCode(parsed.countryCode);
-      });
-      if (parsed.isValid(type: PhoneNumberType.mobile)) {
-        return parsed.nsn;
-      }
-    }
-    return null;
+    return phoneString;
   }
 
-  Future<void> _inputPhoneChange(v) async {
-    String? nsn;
+  Future<String?> _phoneNumberParser(String? source) async {
     try {
-      if (v.contains('+') && v.length > 4) {
-        nsn = await _phoneNumberParser(v);
+      if (source != null) {
+        final parsed = PhoneNumber.parse(source);
+        bool isValid = parsed.isValid(type: PhoneNumberType.mobile);
+        setState(() {
+          phoneNumberIsInvalid = !isValid;
+        });
+        if (source.contains('+')) {
+          _inputCodeController.value =
+              TextEditingValue(text: parsed.countryCode);
+          _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
+        } else {
+          _inputPhoneController.value = TextEditingValue(
+            text: '${parsed.countryCode}${parsed.nsn}',
+          );
+        }
+        _inputPhoneController.selection = TextSelection.fromPosition(
+          TextPosition(offset: parsed.nsn.length),
+        );
+        setState(() {
+          code = parsed.countryCode;
+          if (source.contains('+')) {
+            country = countries.findCountryByDialCode(parsed.countryCode);
+          }
+        });
+        if (isValid) {
+          return parsed.nsn;
+        }
       }
     } on PhoneNumberException catch (err) {
       setState(() {
@@ -337,7 +354,11 @@ class _MainScreenState extends State<MainScreen> {
         );
       }
     }
-    setState(() => phone = nsn ?? v);
+    return null;
+  }
+
+  void _inputPhoneChange(v) {
+    setState(() => phone = v ?? '');
   }
 
   Future<void> _openUrl() async {
@@ -404,9 +425,6 @@ class _MainScreenState extends State<MainScreen> {
     if (value == null || value.isEmpty) {
       return 'notEmpty'.i18n();
     }
-    // if (phoneNumberIsInvalid) {
-    //   return 'This phone number does not look lika a mobile number';
-    // }
     return null;
   }
 
