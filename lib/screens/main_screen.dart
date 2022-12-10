@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -12,7 +13,10 @@ import 'package:quicklaunchim/controllers/code.dart';
 import 'package:quicklaunchim/controllers/message_history.dart';
 import 'package:quicklaunchim/controllers/messenger.dart';
 import 'package:quicklaunchim/data/countries.dart';
+import 'package:quicklaunchim/utils/phonenumber.dart';
 import 'package:quicklaunchim/widgets/donate_banner.dart';
+import 'package:quicklaunchim/widgets/select_phonenumber_dialog.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
@@ -44,27 +48,7 @@ class _MainScreenState extends State<MainScreen> {
 
   FocusNode codeFocusNode = FocusNode();
 
-  Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
-    switch (im) {
-      case InstantMessenger.telegram:
-        return Uri.parse('tg://msg?text=$text&to=+$code$phone');
-      case InstantMessenger.whatsapp:
-        return Uri.parse('whatsapp://send?text=$text&phone=+$code$phone');
-      default:
-        return null;
-    }
-  }
-
-  Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
-    switch (im) {
-      case InstantMessenger.telegram:
-        return Uri.parse('https://t.me/+$code$phone?msg=$text');
-      case InstantMessenger.whatsapp:
-        return Uri.parse('https://wa.me/+$code$phone?text=$text');
-      default:
-        return null;
-    }
-  }
+  late StreamSubscription _intentDataStreamSubscription;
 
   @override
   void initState() {
@@ -72,6 +56,29 @@ class _MainScreenState extends State<MainScreen> {
 
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByDialCode(code));
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStream().listen((String value) async {
+      _inputPhoneChange(
+        await _phoneNumberParser(
+          await _findAndSelectPhoneNumber(value),
+        ),
+      );
+    }, onError: (err) {
+      log("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((value) async {
+      if (value != null) {
+        _inputPhoneChange(
+          await _phoneNumberParser(
+            await _findAndSelectPhoneNumber(value),
+          ),
+        );
+      }
     });
   }
 
@@ -102,6 +109,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     codeFocusNode.dispose();
+    _intentDataStreamSubscription.cancel();
     super.dispose();
   }
 
@@ -276,30 +284,49 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  String? _phoneNumberParser(String phone) {
-    final parsed = PhoneNumber.parse(phone);
-    setState(() {
-      phoneNumberIsInvalid = !parsed.isValid(type: PhoneNumberType.mobile);
-    });
-    _inputCodeController.value = TextEditingValue(text: parsed.countryCode);
-    _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
-    _inputPhoneController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _inputPhoneController.text.length));
-    setState(() {
-      code = parsed.countryCode;
-      country = countries.findCountryByDialCode(parsed.countryCode);
-    });
-    if (parsed.isValid(type: PhoneNumberType.mobile)) {
-      return parsed.nsn;
+  Future<String?> _findAndSelectPhoneNumber(String source) async {
+    final matches = PhoneNumberUtils.findPhoneNumbersInString(source);
+    String? phoneString;
+    if (matches.length == 1) {
+      phoneString = matches[0];
+    } else {
+      phoneString = await showDialog(
+        context: context,
+        builder: (context) => SelectPhoneNumberDialog(phoneNumbers: matches),
+      );
     }
-    return null;
+    return phoneString;
   }
 
-  void _inputPhoneChange(v) {
-    String? nsn;
+  Future<String?> _phoneNumberParser(String? source) async {
     try {
-      if (v.contains('+') && v.length > 4) {
-        nsn = _phoneNumberParser(v);
+      if (source != null) {
+        final parsed = PhoneNumber.parse(source);
+        bool isValid = parsed.isValid(type: PhoneNumberType.mobile);
+        setState(() {
+          phoneNumberIsInvalid = !isValid;
+        });
+        if (source.contains('+')) {
+          _inputCodeController.value =
+              TextEditingValue(text: parsed.countryCode);
+          _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
+        } else {
+          _inputPhoneController.value = TextEditingValue(
+            text: '${parsed.countryCode}${parsed.nsn}',
+          );
+        }
+        _inputPhoneController.selection = TextSelection.fromPosition(
+          TextPosition(offset: parsed.nsn.length),
+        );
+        setState(() {
+          code = parsed.countryCode;
+          if (source.contains('+')) {
+            country = countries.findCountryByDialCode(parsed.countryCode);
+          }
+        });
+        if (isValid) {
+          return parsed.nsn;
+        }
       }
     } on PhoneNumberException catch (err) {
       setState(() {
@@ -327,7 +354,11 @@ class _MainScreenState extends State<MainScreen> {
         );
       }
     }
-    setState(() => phone = nsn ?? v);
+    return null;
+  }
+
+  void _inputPhoneChange(v) {
+    setState(() => phone = v ?? '');
   }
 
   Future<void> _openUrl() async {
@@ -394,10 +425,29 @@ class _MainScreenState extends State<MainScreen> {
     if (value == null || value.isEmpty) {
       return 'notEmpty'.i18n();
     }
-    // if (phoneNumberIsInvalid) {
-    //   return 'This phone number does not look lika a mobile number';
-    // }
     return null;
+  }
+
+  Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('tg://msg?text=$text&to=+$code$phone');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('whatsapp://send?text=$text&phone=+$code$phone');
+      default:
+        return null;
+    }
+  }
+
+  Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('https://t.me/+$code$phone?msg=$text');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('https://wa.me/+$code$phone?text=$text');
+      default:
+        return null;
+    }
   }
 }
 
