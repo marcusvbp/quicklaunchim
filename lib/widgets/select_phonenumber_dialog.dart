@@ -29,7 +29,7 @@ class SelectPhoneNumberDialog extends StatelessWidget {
             ),
             child: ListView.separated(
               itemBuilder: (context, index) => ListTile(
-                title: Text(phoneNumbers[index]!),
+                title: Text(phoneNumbers[index]!.replaceAll("\n", "")),
                 onTap: () {
                   Navigator.pop(context, phoneNumbers[index]);
                 },
