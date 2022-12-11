@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:localization/localization.dart';
 
 class SelectPhoneNumberDialog extends StatelessWidget {
   final List<String?> phoneNumbers;
@@ -11,12 +12,12 @@ class SelectPhoneNumberDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             child: Text(
-              'Múltiplos Números de Telefone detectados. Selecione uma das opções abaixo:',
+              'selectPhoneNumberDialogTitle'.i18n(),
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           const Divider(
@@ -50,8 +51,8 @@ class SelectPhoneNumberDialog extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
             },
-            title: const Text(
-              'Cancelar',
+            title: Text(
+              'cancel'.i18n(),
               textAlign: TextAlign.center,
             ),
           )

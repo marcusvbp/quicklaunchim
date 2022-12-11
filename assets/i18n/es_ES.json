@@ -28,5 +28,11 @@
   "donateWith": "Donar con",
   "openUrlError": "Error al intentar abrir el enlace.",
   "donateMessage": "Si te gusta %s0, ¡considera donar! ❤️",
-  "cantOpenLink": "No se puede abrir el enlace de %s0"
+  "cantOpenLink": "No se puede abrir el enlace de %s0",
+  "clipboardDialogTitle": "Números copiados detectados",
+  "clipboardDialogBody": "Detectamos %s0 posibles números de teléfono en un texto copiado en memoria. ¿Quieres utilizar uno de ellos para rellenar el formulario?",
+  "clipboardDialogNoButton": "No utilizar",
+  "clipboardDialogYesButton": "Usar números detectados",
+  "selectPhoneNumberDialogTitle": "Múltiples números de teléfono detectados. Seleccionar una de las siguientes opciones:",
+  "cancel": "Cancelar"
 }

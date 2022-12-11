@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -32,7 +33,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final formKey = GlobalKey<FormState>();
   String code = '';
   String phone = '';
@@ -53,6 +54,10 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
+    _getFromClipborard();
 
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByDialCode(code));
@@ -107,9 +112,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _getFromClipborard();
+    }
+  }
+
+  @override
   void dispose() {
     codeFocusNode.dispose();
     _intentDataStreamSubscription.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -282,6 +295,44 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: const DonateBanner(),
     );
+  }
+
+  void _getFromClipborard() {
+    FlutterClipboard.paste().then((value) async {
+      final matches = PhoneNumberUtils.findPhoneNumbersInString(value);
+      if (matches.isNotEmpty) {
+        bool? confirm = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('clipboardDialogTitle'.i18n()),
+            content: Text(
+              'clipboardDialogBody'.i18n([matches.length.toString()]),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
+                child: Text('clipboardDialogNoButton'.i18n()),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+                child: Text('clipboardDialogYesButton'.i18n()),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true) {
+          _inputPhoneChange(
+            await _phoneNumberParser(
+              await _findAndSelectPhoneNumber(value),
+            ),
+          );
+        }
+      }
+    });
   }
 
   Future<String?> _findAndSelectPhoneNumber(String source) async {
