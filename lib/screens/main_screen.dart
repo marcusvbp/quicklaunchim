@@ -18,6 +18,7 @@ import 'package:quicklaunchim/utils/phonenumber.dart';
 import 'package:quicklaunchim/widgets/donate_banner.dart';
 import 'package:quicklaunchim/widgets/select_phonenumber_dialog.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:universal_io/io.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
@@ -63,28 +64,30 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       setState(() => country = countries.findCountryByDialCode(code));
     });
 
-    // For sharing or opening urls/text coming from outside the app while the app is in the memory
-    _intentDataStreamSubscription =
-        ReceiveSharingIntent.getTextStream().listen((String value) async {
-      _inputPhoneChange(
-        await _phoneNumberParser(
-          await _findAndSelectPhoneNumber(value),
-        ),
-      );
-    }, onError: (err) {
-      log("getLinkStream error: $err");
-    });
-
-    // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.getInitialText().then((value) async {
-      if (value != null) {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // For sharing or opening urls/text coming from outside the app while the app is in the memory
+      _intentDataStreamSubscription =
+          ReceiveSharingIntent.getTextStream().listen((String value) async {
         _inputPhoneChange(
           await _phoneNumberParser(
             await _findAndSelectPhoneNumber(value),
           ),
         );
-      }
-    });
+      }, onError: (err) {
+        log("getLinkStream error: $err");
+      });
+
+      // For sharing or opening urls/text coming from outside the app while the app is closed
+      ReceiveSharingIntent.getInitialText().then((value) async {
+        if (value != null) {
+          _inputPhoneChange(
+            await _phoneNumberParser(
+              await _findAndSelectPhoneNumber(value),
+            ),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -121,7 +124,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     codeFocusNode.dispose();
-    _intentDataStreamSubscription.cancel();
+    if (Platform.isAndroid || Platform.isIOS) {
+      _intentDataStreamSubscription.cancel();
+    }
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

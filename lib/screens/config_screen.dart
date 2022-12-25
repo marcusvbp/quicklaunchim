@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:quicklaunchim/controllers/appsettings/language.dart';
 import 'package:quicklaunchim/controllers/appsettings/theme.dart';
@@ -14,6 +15,13 @@ class ConfigScreen extends StatefulWidget {
 }
 
 class _ConfigScreenState extends State<ConfigScreen> {
+  late Future<PackageInfo> _cachedPkgInfoFuture;
+  @override
+  void initState() {
+    _cachedPkgInfoFuture = PackageInfo.fromPlatform();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +99,33 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       ),
                     );
                   }
+                },
+              ),
+              const Divider(height: 1),
+              FutureBuilder<PackageInfo>(
+                future: _cachedPkgInfoFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListTile(
+                      title: Text(
+                        '${snapshot.data!.appName.i18n()} ${snapshot.data!.version} (${snapshot.data!.buildNumber})',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .textTheme
+                              .subtitle1!
+                              .color!
+                              .withAlpha(80),
+                        ),
+                      ),
+                    );
+                  }
+                  if (!snapshot.hasData) {
+                    return Container();
+                  }
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 },
               ),
             ],
