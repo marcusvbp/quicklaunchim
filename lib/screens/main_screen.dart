@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +14,11 @@ import 'package:quicklaunchim/controllers/code.dart';
 import 'package:quicklaunchim/controllers/message_history.dart';
 import 'package:quicklaunchim/controllers/messenger.dart';
 import 'package:quicklaunchim/data/countries.dart';
+import 'package:quicklaunchim/utils/phonenumber.dart';
 import 'package:quicklaunchim/widgets/donate_banner.dart';
+import 'package:quicklaunchim/widgets/select_phonenumber_dialog.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:universal_io/io.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/history.dart';
@@ -28,7 +34,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final formKey = GlobalKey<FormState>();
   String code = '';
   String phone = '';
@@ -44,35 +50,44 @@ class _MainScreenState extends State<MainScreen> {
 
   FocusNode codeFocusNode = FocusNode();
 
-  Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
-    switch (im) {
-      case InstantMessenger.telegram:
-        return Uri.parse('tg://msg?text=$text&to=+$code$phone');
-      case InstantMessenger.whatsapp:
-        return Uri.parse('whatsapp://send?text=$text&phone=+$code$phone');
-      default:
-        return null;
-    }
-  }
-
-  Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
-    switch (im) {
-      case InstantMessenger.telegram:
-        return Uri.parse('https://t.me/+$code$phone?msg=$text');
-      case InstantMessenger.whatsapp:
-        return Uri.parse('https://wa.me/+$code$phone?text=$text');
-      default:
-        return null;
-    }
-  }
+  late StreamSubscription _intentDataStreamSubscription;
 
   @override
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addObserver(this);
+
+    _getFromClipborard();
+
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByDialCode(code));
     });
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      // For sharing or opening urls/text coming from outside the app while the app is in the memory
+      _intentDataStreamSubscription =
+          ReceiveSharingIntent.getTextStream().listen((String value) async {
+        _inputPhoneChange(
+          await _phoneNumberParser(
+            await _findAndSelectPhoneNumber(value),
+          ),
+        );
+      }, onError: (err) {
+        log("getLinkStream error: $err");
+      });
+
+      // For sharing or opening urls/text coming from outside the app while the app is closed
+      ReceiveSharingIntent.getInitialText().then((value) async {
+        if (value != null) {
+          _inputPhoneChange(
+            await _phoneNumberParser(
+              await _findAndSelectPhoneNumber(value),
+            ),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -100,8 +115,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _getFromClipborard();
+    }
+  }
+
+  @override
   void dispose() {
     codeFocusNode.dispose();
+    if (Platform.isAndroid || Platform.isIOS) {
+      _intentDataStreamSubscription.cancel();
+    }
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -276,30 +302,87 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  String? _phoneNumberParser(String phone) {
-    final parsed = PhoneNumber.parse(phone);
-    setState(() {
-      phoneNumberIsInvalid = !parsed.isValid(type: PhoneNumberType.mobile);
+  void _getFromClipborard() {
+    FlutterClipboard.paste().then((value) async {
+      final matches = PhoneNumberUtils.findPhoneNumbersInString(value);
+      if (matches.isNotEmpty) {
+        bool? confirm = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('clipboardDialogTitle'.i18n()),
+            content: Text(
+              'clipboardDialogBody'.i18n([matches.length.toString()]),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
+                child: Text('clipboardDialogNoButton'.i18n()),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+                child: Text('clipboardDialogYesButton'.i18n()),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true) {
+          _inputPhoneChange(
+            await _phoneNumberParser(
+              await _findAndSelectPhoneNumber(value),
+            ),
+          );
+        }
+      }
     });
-    _inputCodeController.value = TextEditingValue(text: parsed.countryCode);
-    _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
-    _inputPhoneController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _inputPhoneController.text.length));
-    setState(() {
-      code = parsed.countryCode;
-      country = countries.findCountryByDialCode(parsed.countryCode);
-    });
-    if (parsed.isValid(type: PhoneNumberType.mobile)) {
-      return parsed.nsn;
-    }
-    return null;
   }
 
-  void _inputPhoneChange(v) {
-    String? nsn;
+  Future<String?> _findAndSelectPhoneNumber(String source) async {
+    final matches = PhoneNumberUtils.findPhoneNumbersInString(source);
+    String? phoneString;
+    if (matches.length == 1) {
+      phoneString = matches[0];
+    } else {
+      phoneString = await showDialog(
+        context: context,
+        builder: (context) => SelectPhoneNumberDialog(phoneNumbers: matches),
+      );
+    }
+    return phoneString;
+  }
+
+  Future<String?> _phoneNumberParser(String? source) async {
     try {
-      if (v.contains('+') && v.length > 4) {
-        nsn = _phoneNumberParser(v);
+      if (source != null) {
+        final parsed = PhoneNumber.parse(source);
+        bool isValid = parsed.isValid(type: PhoneNumberType.mobile);
+        setState(() {
+          phoneNumberIsInvalid = !isValid;
+        });
+        if (source.contains('+')) {
+          _inputCodeController.value =
+              TextEditingValue(text: parsed.countryCode);
+          _inputPhoneController.value = TextEditingValue(text: parsed.nsn);
+        } else {
+          _inputPhoneController.value = TextEditingValue(
+            text: '${parsed.countryCode}${parsed.nsn}',
+          );
+        }
+        _inputPhoneController.selection = TextSelection.fromPosition(
+          TextPosition(offset: parsed.nsn.length),
+        );
+        setState(() {
+          code = parsed.countryCode;
+          if (source.contains('+')) {
+            country = countries.findCountryByDialCode(parsed.countryCode);
+          }
+        });
+        if (isValid) {
+          return parsed.nsn;
+        }
       }
     } on PhoneNumberException catch (err) {
       setState(() {
@@ -327,7 +410,11 @@ class _MainScreenState extends State<MainScreen> {
         );
       }
     }
-    setState(() => phone = nsn ?? v);
+    return null;
+  }
+
+  void _inputPhoneChange(v) {
+    setState(() => phone = v ?? '');
   }
 
   Future<void> _openUrl() async {
@@ -394,10 +481,29 @@ class _MainScreenState extends State<MainScreen> {
     if (value == null || value.isEmpty) {
       return 'notEmpty'.i18n();
     }
-    // if (phoneNumberIsInvalid) {
-    //   return 'This phone number does not look lika a mobile number';
-    // }
     return null;
+  }
+
+  Uri? _getUrlScheme(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('tg://msg?text=$text&to=+$code$phone');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('whatsapp://send?text=$text&phone=+$code$phone');
+      default:
+        return null;
+    }
+  }
+
+  Uri? _getUrlLink(InstantMessenger im, String text, String phone) {
+    switch (im) {
+      case InstantMessenger.telegram:
+        return Uri.parse('https://t.me/+$code$phone?msg=$text');
+      case InstantMessenger.whatsapp:
+        return Uri.parse('https://wa.me/+$code$phone?text=$text');
+      default:
+        return null;
+    }
   }
 }
 
