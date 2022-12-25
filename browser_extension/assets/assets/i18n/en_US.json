@@ -1,5 +1,6 @@
 {
-  "appName": "Quick Open IM",
+  "quicklaunchim": "Quick Launch IM",
+  "appName": "Quick Launch IM",
   "code": "Code",
   "phoneNumber": "Phone number",
   "message": "Message",
@@ -28,5 +29,11 @@
   "donateWith": "Donate with",
   "openUrlError": "Error trying to open the link.",
   "donateMessage": "If you like %s0, please consider donating! ❤️",
-  "cantOpenLink": "Unable to open %s0 link"
+  "cantOpenLink": "Unable to open %s0 link",
+  "clipboardDialogTitle": "Copied numbers detected",
+  "clipboardDialogBody": "We detected %s0 possible phone numbers in a text copied in memory. Do you want to use one of them to fill in the form?",
+  "clipboardDialogNoButton": "Do not use",
+  "clipboardDialogYesButton": "Use detected numbers",
+  "selectPhoneNumberDialogTitle": "Multiple phone numbers detected. Select one of the options below:",
+  "cancel": "Cancel"
 }
