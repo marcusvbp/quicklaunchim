@@ -1,4 +1,4 @@
-package com.marcusvbp.openim.openim
+package com.marcusvbp.openim
 
 import io.flutter.embedding.android.FlutterActivity
 

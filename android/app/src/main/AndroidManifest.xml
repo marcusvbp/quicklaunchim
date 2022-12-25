@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.marcusvbp.openim.openim">
+    package="com.marcusvbp.openim">
    <application
-        android:label="openim"
+        android:label="Quick Open IM"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
