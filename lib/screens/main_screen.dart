@@ -2,8 +2,9 @@
 
 import 'dart:async';
 import 'dart:developer';
+import 'dart:html' as html;
 
-import 'package:clipboard/clipboard.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -58,7 +59,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    _getFromClipborard();
+    _getFromClipboard();
 
     codeFocusNode.addListener(() {
       setState(() => country = countries.findCountryByDialCode(code));
@@ -117,7 +118,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _getFromClipborard();
+      _getFromClipboard();
     }
   }
 
@@ -302,42 +303,59 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _getFromClipborard() {
-    FlutterClipboard.paste().then((value) async {
-      final matches = PhoneNumberUtils.findPhoneNumbersInString(value);
-      if (matches.isNotEmpty) {
-        bool? confirm = await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('clipboardDialogTitle'.i18n()),
-            content: Text(
-              'clipboardDialogBody'.i18n([matches.length.toString()]),
+  Future<void> _processDataFromClipboard(String value) async {
+    final matches = PhoneNumberUtils.findPhoneNumbersInString(value);
+    if (matches.isNotEmpty) {
+      bool? confirm = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('clipboardDialogTitle'.i18n()),
+          content: Text(
+            'clipboardDialogBody'.i18n([matches.length.toString()]),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: Text('clipboardDialogNoButton'.i18n()),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, false);
-                },
-                child: Text('clipboardDialogNoButton'.i18n()),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, true);
-                },
-                child: Text('clipboardDialogYesButton'.i18n()),
-              ),
-            ],
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: Text('clipboardDialogYesButton'.i18n()),
+            ),
+          ],
+        ),
+      );
+      if (confirm == true) {
+        _inputPhoneChange(
+          await _phoneNumberParser(
+            await _findAndSelectPhoneNumber(value),
           ),
         );
-        if (confirm == true) {
-          _inputPhoneChange(
-            await _phoneNumberParser(
-              await _findAndSelectPhoneNumber(value),
-            ),
-          );
-        }
       }
-    });
+    }
+  }
+
+  void _getFromClipboard() {
+    if (kIsWeb) {
+      var document = html.window.document;
+      var helperdiv = document.createElement("div");
+      var range = document.createRange();
+      helperdiv.contentEditable = 'true';
+      html.document.body!.append(helperdiv);
+      range.selectNode(helperdiv);
+      var selection = html.window.getSelection();
+      if (selection != null) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      helperdiv.focus();
+      document.execCommand('paste');
+      _processDataFromClipboard(helperdiv.innerText);
+    }
   }
 
   Future<String?> _findAndSelectPhoneNumber(String source) async {
