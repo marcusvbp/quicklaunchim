@@ -116,3 +116,5 @@ icons_launcher:
       enable: true
     macos:
       enable: true
+
+# fvm flutter build web --web-renderer html --csp
